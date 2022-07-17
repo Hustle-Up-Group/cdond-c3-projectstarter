@@ -368,7 +368,7 @@ jobs:
             
             # save oldworkflowid for the cleanup phase
             echo $OldWorkflowID
-            curl --insecure https://kvdb.io/Dvw7Sb8Hz69YirzDipb8Ld/values/oldworkflowid -d $OldWorkflowID
+            curl --insecure https://kvdb.io/Dvw7Sb8Hz69YirzDipb8Ld/oldworkflowid -d $OldWorkflowID
             
             # promote
             aws cloudformation deploy \
@@ -387,9 +387,9 @@ jobs:
         - run:
             name: Remove old stacks and files
             command: |
-              export OldWorkflowID=$(curl --insecure https://kvdb.io/Dvw7Sb8Hz69YirzDipb8Ld/values/oldworkflowid)
+              export OldWorkflowID=$(curl --insecure https://kvdb.io/Dvw7Sb8Hz69YirzDipb8Ld/oldworkflowid)
               echo "-----Old Workflow Id-----"
-              echo OldWorkflowID
+              echo $OldWorkflowID
               echo "-----Old Workflow Id-----"
               
               if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
