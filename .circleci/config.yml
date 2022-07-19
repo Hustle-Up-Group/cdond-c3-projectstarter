@@ -353,27 +353,11 @@ jobs:
       - install_awscli
       - run:
           name: Update cloudfront distribution
-          command: |
-            export OldWorkflowID=$(aws cloudformation \
-              list-exports --query "Exports[?Name==\`WorkflowID\`].Value" \
-              --no-paginate --output text)
-
-            export STACKS=($(aws cloudformation list-stacks --query "StackSummaries[*].StackName" \
-              --stack-status-filter CREATE_COMPLETE --no-paginate --output text))
-            
-            echo "-----Old Workflow ID-----"
-            echo "${OldWorkflowID}" >> ~/OldWorkflowID.txt
-            cat ~/OldWorkflowID.txt
-            echo "${STACKS[@]}"
-            
-            # save oldworkflowid for the cleanup phase
-            echo $OldWorkflowID
-            curl --insecure https://kvdb.io/Dvw7Sb8Hz69YirzDipb8Ld/oldworkflowid -d $OldWorkflowID
-            
+          command: |            
             # promote
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
-              --stack-name InitialStack \
+              --stack-name GreenStack \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
       - destroy-environment
@@ -387,7 +371,7 @@ jobs:
         - run:
             name: Remove old stacks and files
             command: |
-              export OldWorkflowID=$(curl --insecure https://kvdb.io/Dvw7Sb8Hz69YirzDipb8Ld/oldworkflowid)
+              export OldWorkflowID=$(curl --insecure https://kvdb.io/DBU9Li3huEZXXcDM5zMSe9/oldworkflowid)
               echo "-----Old Workflow Id-----"
               echo $OldWorkflowID
               echo "-----Old Workflow Id-----"
@@ -399,13 +383,18 @@ jobs:
                 echo ${stack}
               done
               
-              if [[ "${STACKS[@]}" =~ "${OldWorkflowID}" ]]
+              if [[ "${CIRCLE_WORKFLOW_ID:0:7}" != "${OldWorkflowID}" ]]
               then
                 aws s3 rm s3://udapeople-"${OldWorkflowID}" --recursive
                 aws cloudformation delete-stack --stack-name udapeople-frontend-"${OldWorkflowID}"
                 aws cloudformation delete-stack --stack-name udapeople-backend-"${OldWorkflowID}"
-                aws cloudformation delete-stack --stack-name udapeople-cloudfront-"${OldWorkflowID}"
+                aws cloudformation delete-stack --stack-name BlueStack
               fi
+
+            
+            # save oldworkflowid for the next cleanup phase
+            echo $OldWorkflowID
+            curl --insecure https://kvdb.io/DBU9Li3huEZXXcDM5zMSe9/oldworkflowid -d ${CIRCLE_WORKFLOW_ID:0:7}
 
 
 workflows:
