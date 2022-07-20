@@ -161,6 +161,13 @@ jobs:
       - checkout
       - install_awscli
       - run:
+          name: Create cloudfront distribution
+          command: |
+            aws cloudformation deploy \
+                    --template-file .circleci/files/cloudfront.yml \
+                    --stack-name udapeople-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}\
+                    --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+      - run:
           name: Ensure back-end infrastructure exists
           command: |
             aws cloudformation deploy \
@@ -355,7 +362,7 @@ jobs:
             # promote
             aws cloudformation deploy \
               --template-file .circleci/files/cloudfront.yml \
-              --stack-name InitialStack \
+              --stack-name udapeople-cloudfront-${CIRCLE_WORKFLOW_ID:0:7} \
               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}" \
               --tags project=udapeople
       - destroy-environment
@@ -386,6 +393,7 @@ jobs:
                 aws s3 rm s3://udapeople-"${OldWorkflowID}" --recursive
                 aws cloudformation delete-stack --stack-name udapeople-frontend-"${OldWorkflowID}"
                 aws cloudformation delete-stack --stack-name udapeople-backend-"${OldWorkflowID}"
+                aws cloudformation delete-stack --stack-name udapeople-cloudfront-"${OldWorkflowID}"
               fi
             
               curl --insecure https://kvdb.io/DBU9Li3huEZXXcDM5zMSe9/oldworkflowid -d ${CIRCLE_WORKFLOW_ID:0:7} 
@@ -419,7 +427,7 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      - cloudfront-update:
-          requires: [smoke-test]
-      - cleanup:
-          requires: [cloudfront-update]
+      # - cloudfront-update:
+      #     requires: [smoke-test]
+      # - cleanup:
+      #     requires: [cloudfront-update]
