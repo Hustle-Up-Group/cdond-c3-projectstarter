@@ -357,7 +357,7 @@ jobs:
       - checkout
       - install_awscli
       - run:
-          name: Update cloudfront distribution
+          name: Update cloudfront distribution 
           command: |            
             # promote
             aws cloudformation deploy \
