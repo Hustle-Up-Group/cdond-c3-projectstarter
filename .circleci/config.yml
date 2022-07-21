@@ -160,13 +160,13 @@ jobs:
     steps:
       - checkout
       - install_awscli
-      - run:
-          name: Create cloudfront distribution
-          command: |
-            aws cloudformation deploy \
-                    --template-file .circleci/files/cloudfront.yml \
-                    --stack-name udapeople-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}\
-                    --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
+      # - run:
+      #     name: Create cloudfront distribution
+      #     command: |
+      #       aws cloudformation deploy \
+      #               --template-file .circleci/files/cloudfront.yml \
+      #               --stack-name udapeople-cloudfront-${CIRCLE_WORKFLOW_ID:0:7}\
+      #               --parameter-overrides WorkflowID="${CIRCLE_WORKFLOW_ID:0:7}"
       - run:
           name: Ensure back-end infrastructure exists
           command: |
@@ -426,7 +426,7 @@ workflows:
           requires: [run-migrations]
       - smoke-test:
           requires: [deploy-backend, deploy-frontend]
-      # - cloudfront-update:
-      #     requires: [smoke-test]
-      # - cleanup:
-      #     requires: [cloudfront-update]
+      - cloudfront-update:
+          requires: [smoke-test]
+      - cleanup:
+          requires: [cloudfront-update]
